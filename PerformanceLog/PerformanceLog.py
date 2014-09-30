@@ -18,6 +18,7 @@ import os
 import subprocess
 import threading
 import time
+import Plotter
 
 # create logger
 myLogger = logging.getLogger('JmxLogger')
@@ -30,7 +31,10 @@ class JmxLogger(object):
         self._jmxTermProc = None
         self._fw = open('tempout', 'wb')
         self._fr = open('tempout', 'r')
+        self._jmxLogFilename = 'jmxMetrics.csv'
         self._jmxLog = None
+        # This must have png extension, make it private
+        self._jmxPlotFilename = 'jmxMetrics.png'
         self._osString = osString
         
         # Simple assertion check: values cannot be always zero
@@ -80,6 +84,9 @@ class JmxLogger(object):
             # Record the metrics back into a Cassandra Table
             
             # Graph the results
+            customLabels = ['SSTableCount', 'DataSize', '95thPercentile']
+            Plotter.plotCsv(self._jmxLogFilename , self._jmxPlotFilename, 
+                            customHeaders = customLabels)
             
         else:
             myLogger.error( 'Cassandra instance is not found running')
@@ -94,10 +101,12 @@ class JmxLogger(object):
         self._jmxTermProc = subprocess.Popen( jmxTermCmd, stdin = subprocess.PIPE, 
                                  stdout = self._fw, stderr = self._fw)
         self._zeroCheck = False
-        self._jmxLog = open('jmxMetrics.csv', 'w')
+        self._jmxLog = open(self._jmxLogFilename, 'w')
         
         # Implementation-specific headers
-        self._jmxLog.write('LiveSSTableCount,AllMemtablesDataSize,95thPercentile\n')
+#         self._jmxLog.write('LiveSSTableCount,AllMemtablesDataSize,95thPercentile\n')
+        # due to possible long header strings, use custom headers
+        self._jmxLog.write('SSTableCount,DataSize,95thPercentile\n')
         
             
     def logJmx(self, count):
