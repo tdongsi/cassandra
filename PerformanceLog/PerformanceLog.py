@@ -84,9 +84,7 @@ class JmxLogger(object):
             # Record the metrics back into a Cassandra Table
             
             # Graph the results
-            customLabels = ['SSTableCount', 'DataSize', '95thPercentile']
-            Plotter.plotCsv(self._jmxLogFilename , self._jmxPlotFilename, 
-                            customHeaders = customLabels)
+            Plotter.plotCsv(self._jmxLogFilename , self._jmxPlotFilename)
             
         else:
             myLogger.error( 'Cassandra instance is not found running')

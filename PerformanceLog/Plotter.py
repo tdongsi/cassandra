@@ -3,6 +3,12 @@ Created on Sep 30, 2014
 
 My plotting module.
 
+This Python module uses Matplotlib library.
+Please install the following Python libraries: matplotlib, numpy, dateutil, pytz, pyparsing, six.
+(optionally pillow, pycairo, tornado, wxpython, pyside, pyqt, ghostscript, miktex, ffmpeg, mencoder, avconv, or imagemagick)
+Installation of these Python libraries are straight-forward on Linux and Win32.
+On Win64, please find installers here: http://www.lfd.uci.edu/~gohlke/pythonlibs/
+
 @author: tdongsi
 '''
 
@@ -46,14 +52,11 @@ def parseCsv(csvFile):
     # Only here in error cases
     return None, None
 
-def plotCsv(csvFile, pngFile, customHeaders = None):
+def plotCsv(csvFile, pngFile):
     '''
     Get in a csvFile and generate plots as pngFile.
     '''
     (headerList, dataList) = parseCsv(csvFile)
-    # due to possible long header strings, use custom headers
-    if customHeaders and len(customHeaders) == len(headerList):
-        headerList = customHeaders
     
     myLogger.debug(headerList)
     for i in range(len(headerList)):
@@ -83,8 +86,9 @@ def plotCsv(csvFile, pngFile, customHeaders = None):
     
     plt.xlabel('Check points')
     plt.savefig(pngFile, dpi = 300, bbox_inches='tight' )
-    # DEBUG: enable this if you want to see the plot
-    plt.show()
+#     # DEBUG: enable this if you want to see the plot
+#     plt.show()
+
 
 def main():
     plotCsv('jmxMetrics.csv', 'jmxMetrics.png')
