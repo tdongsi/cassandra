@@ -101,20 +101,30 @@ class JmxLogger(object):
         
         getMemTableDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=MemtableDataSize,scope=Standard1,type=ColumnFamily Value'
         getLiveSSTableCount = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=LiveSSTableCount,scope=Standard1,type=ColumnFamily Value'
-        getAllMemTablesDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=AllMemTablesDataSize,scope=Standard1,type=ColumnFamily Value'
-        get95thPercentile = r'get -s -b org.apache.cassandra.metrics:name=Latency,scope=Write,type=ClienRequest 95thPercentile'
+        getAllMemTablesDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=AllMemtablesDataSize,scope=Standard1,type=ColumnFamily Value'
+        get95thPercentile = r'get -s -b org.apache.cassandra.metrics:name=Latency,scope=Write,type=ClientRequest 95thPercentile'
         
-        myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
-        self._jmxTermProc.stdin.write( "%s\n"%getMemTableDataSize)
+#         # Example for JmxTerm
+#         myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
+#         self._jmxTermProc.stdin.write( "%s\n"%getMemTableDataSize)
+#         # Give it some time for processing
+#         time.sleep(0.2)
+#         output1 = self._fr.readline().strip()
+        
+        self._jmxTermProc.stdin.write( "%s\n"%getLiveSSTableCount)
         # Give it some time for processing
         time.sleep(0.2)
         output1 = self._fr.readline().strip()
         
-#         myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
-#         self._jmxTermProc.stdin.write( "%s\n"%getMemTableDataSize)
-#         output2 = self._fr.read()
+        self._jmxTermProc.stdin.write( "%s\n"%getAllMemTablesDataSize)
+        time.sleep(0.2)
+        output2 = self._fr.readline().strip()
         
-        print '<%s>' % (output1)
+        self._jmxTermProc.stdin.write( "%s\n"%get95thPercentile)
+        time.sleep(0.2)
+        output3 = self._fr.readline().strip()
+        
+        print '<%s,%s,%s>' % (output1, output2, output3)
         
         return
     
