@@ -27,6 +27,7 @@ class JmxLogger(object):
         self._installDir = installDir
         self._host = host
         self._jmxTerm = jmxTerm
+        self._jmxTermProc = None
         self._osString = osString
         
         if self._osString == 'win':
@@ -34,41 +35,87 @@ class JmxLogger(object):
             # nodetool in installDir\apache-cassandra\bin
             self._nodetool = os.path.join(self._installDir, 'apache-cassandra', 
                                           'bin', 'nodetool.bat')
+            # sampling interval for getting JXM metrics
+            self._interval = 2.0
+            
             # cassandra-stress in installDir\apache-cassandra\tools\bin
             self._stresstool = os.path.join(self._installDir, 'apache-cassandra', 
                                 'tools', 'bin', 'cassandra-stress.bat')
         else:
-            # TODO
+            # TODO: for Linux-based
             pass
     
     def run(self):
+        
+        # Check if Cassandra is running
         if self.isCassandraRunning():
             myLogger.info( 'An running Cassandra instance is found')
             
+            self.startLoggingJmx()
+            
+            # Runs the external tool Cassandra Stress
             myThread = threading.Thread(target = self.runCassandraStress)
             myThread.start()
             
+            # Begins recording JMX Metrics 
             count = 0
             while True:
-                time.sleep(2)
+                time.sleep(self._interval)
                 count += 1
                 self.logJmx(count)
                 
+                # Once the stress session has completed stop recording JMX Metrics
                 if not myThread.isAlive():
                     break
                 
             myLogger.info( 'Finish logging JMX metrics')
+            self.stopLoggingJmx()
+            
+            # Record the metrics back into a Cassandra Table
+            
+            # Graph the results
             
         else:
             myLogger.error( 'Cassandra instance is not found running')
+    
+    def startLoggingJmx(self):
+        jmxTermCmd = ['java', '-jar', self._jmxTerm, '-n', '-v', 'silent', 
+                      '-l', '%s:7199' % self._host]
+        myLogger.debug( '> %s', ' '.join(jmxTermCmd))
+        self._jmxTermProc = subprocess.Popen( jmxTermCmd, stdin = subprocess.PIPE, 
+                                 stdout = subprocess.PIPE)
+        
+        pass
             
     def logJmx(self, count):
-        print count
+        '''
+        Recording JMX Metrics
+        
+        Run JXMTerm tool and construct get commands to get the interested metrics  
+        '''
+        
+        getMemTableDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,'\
+        'name=MemtableDataSize,scope=Standard1,type=ColumnFamily Value\n'
+        
+        myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
+        (stdoutdata, stderrdata) = self._jmxTermProc.communicate(input = getMemTableDataSize)
+        output1 = stdoutdata
+        
+        myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
+        (stdoutdata, stderrdata) = self._jmxTermProc.communicate(input = getMemTableDataSize)
+        output2 = stdoutdata
+        
+        print '%s,%s' % (output1, output2)
+        
         return
+    
+    def stopLoggingJmx(self):
+        self._jmxTermProc.communicate(input = 'exit\n')
+        pass
     
     def runCassandraStress(self):
         '''
-        3. Runs the external tool Cassandra Stress.
+        Runs the external tool Cassandra Stress.        
         '''
         # Sleep 5 seconds to wait for JMX logging 
         time.sleep(5)
@@ -86,7 +133,7 @@ class JmxLogger(object):
     
     def isCassandraRunning(self):
         '''
-        1. Check if Cassandra is running
+        Check if Cassandra is running
         By running: nodetool -host host version
         Naive way:
         If it is running, the environment variable %errorlevel% is 0.
