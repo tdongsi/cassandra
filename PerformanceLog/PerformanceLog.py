@@ -13,10 +13,11 @@ python DataStax.py -installDir C:\datastax -host localhost -jmxTerm lib\jmxterm.
 
 import logging
 import MyLogger
-from MyLogger import runCommand
 import argparse
 import os
 import subprocess
+import threading
+import time
 
 # create logger
 myLogger = logging.getLogger('Installer')
@@ -33,6 +34,9 @@ class JmxLogger(object):
             # nodetool in installDir\apache-cassandra\bin
             self._nodetool = os.path.join(self._installDir, 'apache-cassandra', 
                                           'bin', 'nodetool.bat')
+            # cassandra-stress in installDir\apache-cassandra\tools\bin
+            self._stresstool = os.path.join(self._installDir, 'apache-cassandra', 
+                                'tools', 'bin', 'cassandra-stress.bat')
         else:
             # TODO
             pass
@@ -40,8 +44,45 @@ class JmxLogger(object):
     def run(self):
         if self.isCassandraRunning():
             myLogger.info( 'An running Cassandra instance is found')
+            
+            myThread = threading.Thread(target = self.runCassandraStress)
+            myThread.start()
+            
+            count = 0
+            while True:
+                time.sleep(2)
+                count += 1
+                self.logJmx(count)
+                
+                if not myThread.isAlive():
+                    break
+                
+            myLogger.info( 'Finish logging JMX metrics')
+            
         else:
             myLogger.error( 'Cassandra instance is not found running')
+            
+    def logJmx(self, count):
+        print count
+        return
+    
+    def runCassandraStress(self):
+        '''
+        3. Runs the external tool Cassandra Stress.
+        '''
+        # Sleep 5 seconds to wait for JMX logging 
+        time.sleep(5)
+        
+        myLogger.debug( '> %s', self._stresstool)
+        try:
+            output = subprocess.check_output( self._stresstool, stderr=subprocess.STDOUT )
+            myLogger.debug("%s" % output)
+        except subprocess.CalledProcessError as e:
+            myLogger.error( "Error code: %d" % e.returncode)
+            myLogger.error(e.output)
+            
+        time.sleep(5)
+    
     
     def isCassandraRunning(self):
         '''

@@ -7,3 +7,5 @@ Record JMX values from a running Cassandra process, using JMXTerm (http://wiki.c
 * Plot the results.
 
 Based on a Cassandra question on Glassdoor.
+
+Currently, the first version works on Windows (DataStax Community installer).
