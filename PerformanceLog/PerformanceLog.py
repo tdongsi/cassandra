@@ -21,7 +21,7 @@ import subprocess
 # create logger
 myLogger = logging.getLogger('Installer')
 
-class JmxLogger:
+class JmxLogger(object):
     def __init__(self, installDir, host, jmxTerm, osString = 'win'):
         self._installDir = installDir
         self._host = host
@@ -45,11 +45,14 @@ class JmxLogger:
     
     def isCassandraRunning(self):
         '''
-        1. Ensures Cassandra is running
+        1. Check if Cassandra is running
         By running: nodetool -host host version
         Naive way:
         If it is running, the environment variable %errorlevel% is 0.
         Otherwise, the error level is non-zero, usually 1.
+        
+        In practice, the batch script returns 0, even with wrapper runWinBatch.
+        Instead, we perform text matching to confirm Cassandra running.
         '''
         
         cmdStr = [self._nodetool, '-host', self._host, 'version']
@@ -57,7 +60,11 @@ class JmxLogger:
         try:
             output = subprocess.check_output( cmdStr, stderr=subprocess.STDOUT )
             myLogger.debug("%s" % output)
-            return True
+            
+            if 'ReleaseVersion' in output:
+                return True
+            else:
+                return False
         except subprocess.CalledProcessError as e:
             myLogger.error( "Error code: %d" % e.returncode)
             myLogger.error(e.output)
@@ -94,15 +101,11 @@ def main():
     myLogger.debug( "JmxTerm jar filepath: %s", args.jmxTerm )
     myLogger.debug( "Use-defined OS string: %s", args.osString)
     
-    logger = JmxLogger(args.installDir, args.host, args.jmxTerm, args.osString)
-    logger.run()
+    jmxLogger = JmxLogger(args.installDir, args.host, args.jmxTerm, args.osString)
+    jmxLogger.run()
     
 
 if __name__ == "__main__":
-    '''
-    Usage:
-    
-    '''
+    ''' Usage: See the top comment for usage of this script.'''
     print 'Running the script'
     out = main()
-    print out

@@ -29,6 +29,27 @@ console.setFormatter(formatter)
 # add the handler to the root logger
 logging.getLogger('').addHandler(console)
 
+def runWinBatch(logger, cmdStr):
+    '''
+    Run the batch file and return the error level.
+    There is little correlation between process exit code and the errorlevel 
+    environment variable when running batch script in Windows.
+    This method provides a wrapper for the Windows batch scripts that
+    returns the correct error level. 
+    '''
+    
+    # Print out the caller module and its line number
+    logger.debug( 'Calling from %s' % str(inspect.stack()[1][1:3]))
+    # run a command without exiting
+    winCmd = ['cmd', '/K']
+    winCmd.extend(cmdStr)
+    logger.debug( '> %s', ' '.join(winCmd))
+    
+    p = subprocess.Popen(winCmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    stdoutdata, stderrdata = p.communicate(r'exit %errorlevel%\r\n')
+    
+    return p.returncode
+    
 
 def runCommand(logger, cmdStr):
     # Print out the caller module and its line number
