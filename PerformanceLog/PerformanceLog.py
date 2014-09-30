@@ -20,7 +20,7 @@ import threading
 import time
 
 # create logger
-myLogger = logging.getLogger('Installer')
+myLogger = logging.getLogger('JmxLogger')
 
 class JmxLogger(object):
     def __init__(self, installDir, host, jmxTerm, osString = 'win'):
@@ -30,7 +30,11 @@ class JmxLogger(object):
         self._jmxTermProc = None
         self._fw = open('tempout', 'wb')
         self._fr = open('tempout', 'r')
+        self._jmxLog = None
         self._osString = osString
+        
+        # Simple assertion check: values cannot be always zero
+        self._zeroCheck = False
         
         if self._osString == 'win':
             # In Windows
@@ -89,14 +93,17 @@ class JmxLogger(object):
         # No buffering required (bufsize=0).  
         self._jmxTermProc = subprocess.Popen( jmxTermCmd, stdin = subprocess.PIPE, 
                                  stdout = self._fw, stderr = self._fw)
+        self._zeroCheck = False
+        self._jmxLog = open('jmxMetrics.csv', 'w')
+        
+        # Implementation-specific headers
+        self._jmxLog.write('LiveSSTableCount,AllMemtablesDataSize,95thPercentile\n')
         
             
     def logJmx(self, count):
         '''
         Recording JMX Metrics
-        
         Run JXMTerm tool and construct get commands to get the interested metrics
-        Constructing queries based on the given example getMemTableDataSize
         '''
         
         getMemTableDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=MemtableDataSize,scope=Standard1,type=ColumnFamily Value'
@@ -104,7 +111,8 @@ class JmxLogger(object):
         getAllMemTablesDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=AllMemtablesDataSize,scope=Standard1,type=ColumnFamily Value'
         get95thPercentile = r'get -s -b org.apache.cassandra.metrics:name=Latency,scope=Write,type=ClientRequest 95thPercentile'
         
-#         # Example for JmxTerm
+        
+#         # The example for JmxTerm
 #         myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
 #         self._jmxTermProc.stdin.write( "%s\n"%getMemTableDataSize)
 #         # Give it some time for processing
@@ -115,16 +123,33 @@ class JmxLogger(object):
         # Give it some time for processing
         time.sleep(0.2)
         output1 = self._fr.readline().strip()
+        if output1 == '':
+            output1 = '0'
         
         self._jmxTermProc.stdin.write( "%s\n"%getAllMemTablesDataSize)
         time.sleep(0.2)
         output2 = self._fr.readline().strip()
+        if output2 == '':
+            output2 = '0'
         
         self._jmxTermProc.stdin.write( "%s\n"%get95thPercentile)
         time.sleep(0.2)
         output3 = self._fr.readline().strip()
+        if output3 == '':
+            output3 = '0.0'
         
-        print '<%s,%s,%s>' % (output1, output2, output3)
+        # Assertion checks: non-negative values
+        assert int(output1) >= 0
+        assert int(output2) >= 0
+        assert float(output3) >= 0.0
+        
+        # Assertion checks: they cannot always be zero
+        if (not self._zeroCheck) and int(output1) > 0 and int(output2) > 0 and float(output3) > 0.0:
+            self._zeroCheck = True
+        
+#         print '<%s,%s,%s>' % (output1, output2, output3)
+        self._jmxLog.write('%s,%s,%s\n' % (output1, output2, output3))
+        myLogger.info('JMX metrics logged')
         
         return
     
@@ -132,6 +157,9 @@ class JmxLogger(object):
         self._jmxTermProc.stdin.write( "exit\n")
         self._fw.close()
         self._fr.close()
+        self._jmxLog.close()
+        
+        assert self._zeroCheck
         
     
     def runCassandraStress(self):
