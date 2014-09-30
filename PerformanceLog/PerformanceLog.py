@@ -3,7 +3,17 @@ Created on Sep 29, 2014
 
 DataStax exercise
 
-Usage:
+Script to automate running Cassandra stress test and recording JMX metrics.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -installDir INSTALLDIR
+                        Path to installation directory.
+  -host HOST            URL string for Cassandra instance. Only localhost
+                        tested.
+  -jmxTerm JMXTERM      Path to jmxterm jar file.
+  -osString OSSTRING    String that represents the current OS. Windows: win.
+                        Mac: mac. Unix/Linux: linux.
 
 Example:
 python DataStax.py -installDir C:\datastax -host localhost -jmxTerm lib\jmxterm.jar -osString win
@@ -19,6 +29,7 @@ import subprocess
 import threading
 import time
 import Plotter
+import CassandraRecord
 
 # create logger
 myLogger = logging.getLogger('JmxLogger')
@@ -82,6 +93,7 @@ class JmxLogger(object):
             self.stopLoggingJmx()
             
             # Record the metrics back into a Cassandra Table
+            CassandraRecord.recordCsv(self._jmxLogFilename, self._host, 'JmxKeyspace', 'JmxRecord')
             
             # Graph the results
             Plotter.plotCsv(self._jmxLogFilename , self._jmxPlotFilename)
@@ -218,7 +230,7 @@ class JmxLogger(object):
 def main():
     '''Automate recording JMX values from a running Cassandra instance.'''
     
-    parser = argparse.ArgumentParser(description='Script to automate running' 
+    parser = argparse.ArgumentParser(description='Script to automate running ' 
         'Cassandra stress and recording JMX metrics.')
     
     parser.add_argument('-installDir', action='store', required=True,
@@ -232,6 +244,7 @@ def main():
                         required=True,
                         help='Path to jmxterm jar file.')
     
+    # Human is better in identifying the current OS
     parser.add_argument('-osString', action='store', dest='osString', 
                         required=True,
                         help='String that represents the current OS. '\
