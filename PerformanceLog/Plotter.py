@@ -70,7 +70,7 @@ def plotCsv(csvFile, pngFile):
     
     # Some pre-defined colors and styles for the subplots
     colors = ['bo-', 'g*-', 'rs-', 'c8-', 'm<-', 'kv-']
-    # if the number of plots is larger, expand colors accordingly
+    # if the number of sub-plots is larger, expand colors accordingly
     for i in range(len(colors), plotNum):
         colors[i] = 'kv-'
     
@@ -84,13 +84,14 @@ def plotCsv(csvFile, pngFile):
         plots[idx].yaxis.set_label_coords(labelx, 0.5)
         plots[idx].grid(True)
     
-    plt.xlabel('Check points')
+    plt.xlabel('Checkpoint index')
     plt.savefig(pngFile, dpi = 300, bbox_inches='tight' )
 #     # DEBUG: enable this if you want to see the plot
 #     plt.show()
 
 
 def main():
+    # Testing
     plotCsv('jmxMetrics.csv', 'jmxMetrics.png')
 
 if __name__ == "__main__":

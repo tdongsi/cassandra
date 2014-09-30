@@ -104,7 +104,7 @@ class JmxLogger(object):
         # Implementation-specific headers
 #         self._jmxLog.write('LiveSSTableCount,AllMemtablesDataSize,95thPercentile\n')
         # due to possible long header strings, use custom headers
-        self._jmxLog.write('SSTableCount,DataSize,95thPercentile\n')
+        self._jmxLog.write('SSTableCount,DataSize,c95thPercentile\n')
         
             
     def logJmx(self, count):
