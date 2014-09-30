@@ -28,6 +28,8 @@ class JmxLogger(object):
         self._host = host
         self._jmxTerm = jmxTerm
         self._jmxTermProc = None
+        self._fw = open('tempout', 'wb')
+        self._fr = open('tempout', 'r')
         self._osString = osString
         
         if self._osString == 'win':
@@ -82,40 +84,49 @@ class JmxLogger(object):
         jmxTermCmd = ['java', '-jar', self._jmxTerm, '-n', '-v', 'silent', 
                       '-l', '%s:7199' % self._host]
         myLogger.debug( '> %s', ' '.join(jmxTermCmd))
-        self._jmxTermProc = subprocess.Popen( jmxTermCmd, stdin = subprocess.PIPE, 
-                                 stdout = subprocess.PIPE)
         
-        pass
+        # NOTE:
+        # No buffering required (bufsize=0).  
+        self._jmxTermProc = subprocess.Popen( jmxTermCmd, stdin = subprocess.PIPE, 
+                                 stdout = self._fw, stderr = self._fw)
+        
             
     def logJmx(self, count):
         '''
         Recording JMX Metrics
         
-        Run JXMTerm tool and construct get commands to get the interested metrics  
+        Run JXMTerm tool and construct get commands to get the interested metrics
+        Constructing queries based on the given example getMemTableDataSize
         '''
         
-        getMemTableDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,'\
-        'name=MemtableDataSize,scope=Standard1,type=ColumnFamily Value\n'
+        getMemTableDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=MemtableDataSize,scope=Standard1,type=ColumnFamily Value'
+        getLiveSSTableCount = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=LiveSSTableCount,scope=Standard1,type=ColumnFamily Value'
+        getAllMemTablesDataSize = r'get -s -b org.apache.cassandra.metrics:keyspace=Keyspace1,name=AllMemTablesDataSize,scope=Standard1,type=ColumnFamily Value'
+        get95thPercentile = r'get -s -b org.apache.cassandra.metrics:name=Latency,scope=Write,type=ClienRequest 95thPercentile'
         
         myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
-        (stdoutdata, stderrdata) = self._jmxTermProc.communicate(input = getMemTableDataSize)
-        output1 = stdoutdata
+        self._jmxTermProc.stdin.write( "%s\n"%getMemTableDataSize)
+        # Give it some time for processing
+        time.sleep(0.2)
+        output1 = self._fr.readline().strip()
         
-        myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
-        (stdoutdata, stderrdata) = self._jmxTermProc.communicate(input = getMemTableDataSize)
-        output2 = stdoutdata
+#         myLogger.debug( 'Keyboard: %s', getMemTableDataSize)
+#         self._jmxTermProc.stdin.write( "%s\n"%getMemTableDataSize)
+#         output2 = self._fr.read()
         
-        print '%s,%s' % (output1, output2)
+        print '<%s>' % (output1)
         
         return
     
     def stopLoggingJmx(self):
-        self._jmxTermProc.communicate(input = 'exit\n')
-        pass
+        self._jmxTermProc.stdin.write( "exit\n")
+        self._fw.close()
+        self._fr.close()
+        
     
     def runCassandraStress(self):
         '''
-        Runs the external tool Cassandra Stress.        
+        Runs the external tool Cassandra Stress.
         '''
         # Sleep 5 seconds to wait for JMX logging 
         time.sleep(5)
