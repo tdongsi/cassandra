@@ -16,7 +16,7 @@ optional arguments:
                         Mac: mac. Unix/Linux: linux.
 
 Example:
-python DataStax.py -installDir C:\datastax -host localhost -jmxTerm lib\jmxterm.jar -osString win
+python PerformanceLog.py -installDir C:\datastax -host localhost -jmxTerm lib\jmxterm.jar -osString win
 
 @author: tdongsi
 '''

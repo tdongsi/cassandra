@@ -1,7 +1,7 @@
 Performance Logging
 =========
 
-Record JMX values from a running Cassandra process, using JMXTerm (http://wiki.cyclopsgroup.org/jmxterm/), and do the following:
+This script records JMX values from a running Cassandra instance, using JMXTerm (http://wiki.cyclopsgroup.org/jmxterm/), and do the following:
 
 * Put the records into a Cassandra table.
 * Plot the results.
@@ -17,9 +17,9 @@ Currently, the first version only works on Windows (DataStax Community installer
 If running the script from command line, the following arguments must be provided:
 
 * installDir INSTALLDIR:  Path to installation directory.
-* host HOST            :  URL string for Cassandra instance. Only localhost tested.
-* jmxTerm JMXTERM      :  Path to jmxterm jar file.
-* osString OSSTRING    :  String that represents the current OS. Windows: win. Mac: mac. Unix/Linux: linux.
+* host HOST: URL string for Cassandra instance. Only localhost tested.
+* jmxTerm JMXTERM: Path to jmxterm jar file.
+* osString OSSTRING: String that represents the current OS. Windows: win. Mac: mac. Unix/Linux: linux.
 
 Example:
 python PerformanceLog.py -installDir C:\datastax -host localhost -jmxTerm lib\jmxterm.jar -osString win
@@ -29,21 +29,16 @@ python PerformanceLog.py -installDir C:\datastax -host localhost -jmxTerm lib\jm
 * CSV file
 
 Example:
+
 >	SSTableCount,DataSize,c95thPercentile
+>
 >	0,0,0.0
+>
 >	7,31306299,9337.784849999995
-	7,31306299,9262.307649999999
-	7,46377363,9981.513249999998
-	8,43848053,6715.435949999997
-	9,59332534,6299.833299999999
-	10,71433598,6165.590649999999
-	11,71034536,6406.8352499999955
-	12,68976063,6517.250999999998
-	13,49334620,6565.55335
-	14,47699160,6495.163199999996
-	15,56378325,6490.254449999997
-	12,94854827,6331.381099999998
-	13,92410210,6458.84175
+>
+>	7,31306299,9262.307649999999
+>
+>	...
 
 * Performance plot (based on CSV output) as PNG file
 
@@ -53,7 +48,7 @@ Example:
 
 
 ## Python modules
-1. PerformanceLog.py: Main module to run the automated tasks. Please use "python DataStax -h"
+1. PerformanceLog.py: Main module to run the automated tasks. Please use "python PerformanceLog -h"
 for the required arguments. Example call for Windows is in the doc string.
 2. MyLogger.py: Logging support module
 3. CassandraRecord.py: Support module to record metrics into a Cassandra table.
@@ -75,9 +70,9 @@ This module requires Datastax's Python driver: http://datastax.github.io/python-
 
 #### For Plotter.py
 
-This Python module used Matplotlib library. Please install the following Python libraries: matplotlib, numpy, dateutil, pytz, pyparsing, six. (optionally pillow, pycairo, tornado, wxpython, pyside, pyqt, ghostscript, miktex, ffmpeg, mencoder, avconv, or imagemagick)
+This Python module used Matplotlib library. Please install the following Python libraries: matplotlib, numpy, dateutil, pytz, pyparsing, six (optionally: pillow, pycairo, tornado, wxpython, pyside, pyqt, ghostscript, miktex, ffmpeg, mencoder, avconv, or imagemagick).
 
-Installation of these Python libraries are straight-forward on Linux and Win32. On Win64, please find installers here: http://www.lfd.uci.edu/~gohlke/pythonlibs/
+Installation of these Python libraries are straight-forward on Linux and Win32. On Win64, please find their installers here: http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
 
 ## Other files
