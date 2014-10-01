@@ -26,7 +26,7 @@ python PerformanceLog.py -installDir C:\datastax -host localhost -jmxTerm lib\jm
 
 ** Output **
 
-* CSV file
+* CSV file with each field for each JMX metric.
 
 Example:
 
@@ -40,12 +40,13 @@ Example:
 >
 >	...
 
-* Performance plot (based on CSV output) as PNG file
+* Performance plot as PNG file (automatically generated from CSV output file)
 
 Example:
 
 ![alt text](https://dl.dropbox.com/s/0vy2u8b7hb7djjv/jmxMetrics.png "Performance Plot")
 
+* Records in a Cassandra table
 
 ## Python modules
 1. PerformanceLog.py: Main module to run the automated tasks. Please use "python PerformanceLog -h"
