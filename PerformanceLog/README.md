@@ -22,9 +22,10 @@ If running the script from command line, the following arguments must be provide
 * osString OSSTRING: String that represents the current OS. Windows: win. Mac: mac. Unix/Linux: linux.
 
 Example:
-python PerformanceLog.py -installDir C:\datastax -host localhost -jmxTerm lib\jmxterm.jar -osString win
 
-** Output **
+> python PerformanceLog.py -installDir C:\datastax -host localhost -jmxTerm lib\jmxterm.jar -osString win
+
+**Output**
 
 * CSV file with each field for each JMX metric.
 
